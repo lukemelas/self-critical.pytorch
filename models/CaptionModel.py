@@ -15,6 +15,8 @@ import torch.nn.functional as F
 from torch.autograd import *
 import misc.utils as utils
 
+import pdb
+
 
 class CaptionModel(nn.Module):
     def __init__(self):
@@ -107,8 +109,8 @@ class CaptionModel(nn.Module):
 
         # INITIALIZATIONS
         beam_seq_table = [torch.LongTensor(self.seq_length, bdash).zero_() for _ in range(group_size)]
-        beam_seq_logprobs_table = [torch.FloatTensor(self.seq_length, bdash).zero_() for _ in range(group_size)]
-        beam_logprobs_sum_table = [torch.zeros(bdash) for _ in range(group_size)]
+        beam_seq_logprobs_table = [torch.FloatTensor(self.seq_length, bdash).zero_() for _ in range(group_size)] 
+        beam_logprobs_sum_table = [torch.zeros(bdash).cuda() for _ in range(group_size)] # MODIFIED (added .cuda())
 
         # logprobs # logprobs predicted in last time step, shape (beam_size, vocab_size+1)
         done_beams_table = [[] for _ in range(group_size)]

@@ -103,6 +103,7 @@ if opt.batch_size == 0:
 if len(opt.id) == 0:
     opt.id = infos['opt'].id
 ignore = ["id", "batch_size", "beam_size", "start_from", "language_eval"]
+ignore = ignore + ["input_fc_dir", "input_fc_dir", "input_att_dir", "input_label_h5", "input_json", "dataset", "input_box_dir"] # data
 for k in vars(infos['opt']).keys():
     if k not in ignore:
         if k in vars(opt):

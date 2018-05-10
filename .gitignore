@@ -1,0 +1,9 @@
+*.pyc
+save
+temp
+vis
+*.out
+__pycache__
+cider
+data
+

@@ -19,6 +19,8 @@ import eval_utils
 import misc.utils as utils
 from misc.rewards import init_scorer, get_self_critical_reward
 
+import pdb
+
 try:
     import tensorflow as tf
 except ImportError:
@@ -111,7 +113,7 @@ def train(opt):
         start = time.time()
         # Load data from train split (0)
         data = loader.get_batch('train')
-        print('Read data:', time.time() - start)
+        data_time = time.time() - start
 
         torch.cuda.synchronize()
         start = time.time()
@@ -134,12 +136,13 @@ def train(opt):
         train_loss = loss.item()
         torch.cuda.synchronize()
         end = time.time()
-        if not sc_flag:
-            print("iter {} (epoch {}), train_loss = {:.3f}, time/batch = {:.3f}" \
-                .format(iteration, epoch, train_loss, end - start))
-        else:
-            print("iter {} (epoch {}), avg_reward = {:.3f}, time/batch = {:.3f}" \
-                .format(iteration, epoch, np.mean(reward[:,0]), end - start))
+        if iteration % opt.print_freq == 0:
+            if not sc_flag:
+                print("iter {} (epoch {}), train_loss = {:.3f}, batch time = {:.3f}, data time = {:.3f}" \
+                    .format(iteration, epoch, train_loss, end - start, data_time))
+            else:
+                print("iter {} (epoch {}), avg_reward = {:.3f}, batch time = {:.3f}, data time = {:.3f}" \
+                    .format(iteration, epoch, np.mean(reward[:,0]), end - start, data_time))
 
         # Update the iteration and epoch
         iteration += 1
@@ -163,6 +166,10 @@ def train(opt):
 
         # make evaluation on validation set, and save model
         if (iteration % opt.save_checkpoint_every == 0):
+            
+            checkpoint_path = os.path.join(opt.checkpoint_path, 'model.pth')
+            torch.save(model.state_dict(), checkpoint_path) # MODIFIED (ADDED)
+
             # eval model
             eval_kwargs = {'split': 'val',
                             'dataset': opt.input_json}
@@ -225,4 +232,5 @@ def train(opt):
             break
 
 opt = opts.parse_opt()
+print(opt)
 train(opt)

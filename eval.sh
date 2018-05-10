@@ -1,0 +1,11 @@
+python eval.py \
+    --model save/topdown_ml/model.pth \
+    --infos_path save/topdown_ml/infos_.pkl \
+    --dump_images 0 \
+    --language_eval 1 \
+    --split val \
+    --input_fc_dir data/parabu_fc \
+    --input_att_dir data/parabu_att \
+    --input_json data/paratalk.json \
+    --input_label_h5 data/paratalk_label.h5 \
+    --num_images 5000

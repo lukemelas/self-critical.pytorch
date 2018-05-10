@@ -12,11 +12,13 @@ import time
 import mmap
 import argparse
 
+import pdb
+
 parser = argparse.ArgumentParser()
 
 # output_dir
-parser.add_argument('--downloaded_feats', default='data/bu_data', help='downloaded feature directory')
-parser.add_argument('--output_dir', default='data/cocobu', help='output feature files')
+parser.add_argument('--downloaded_feats', default='/datadrive/pg/para_features', help='downloaded feature directory')
+parser.add_argument('--output_dir', default='/datadrive/pg/features/cocobu', help='output feature files')
 
 args = parser.parse_args()
 
@@ -24,14 +26,29 @@ csv.field_size_limit(sys.maxsize)
 
 
 FIELDNAMES = ['image_id', 'image_w','image_h','num_boxes', 'boxes', 'features']
-infiles = ['trainval/karpathy_test_resnet101_faster_rcnn_genome.tsv',
-          'trainval/karpathy_val_resnet101_faster_rcnn_genome.tsv',\
-          'trainval/karpathy_train_resnet101_faster_rcnn_genome.tsv.0', \
-           'trainval/karpathy_train_resnet101_faster_rcnn_genome.tsv.1']
+infiles = ['original/vg.tsv.0']
+           #   trainval_36/trainval_resnet101_faster_rcnn_genome_36.tsv']
+           #'trainval/karpathy_test_resnet101_faster_rcnn_genome.tsv',
+           #'trainval/karpathy_val_resnet101_faster_rcnn_genome.tsv',\
+           #'trainval/karpathy_train_resnet101_faster_rcnn_genome.tsv.0', \
+           #'trainval/karpathy_train_resnet101_faster_rcnn_genome.tsv.1']
 
 os.makedirs(args.output_dir+'_att')
 os.makedirs(args.output_dir+'_fc')
 os.makedirs(args.output_dir+'_box')
+
+def decode_base64(data):
+    """Decode base64, padding being optional.
+
+    :param data: Base64 data as an ASCII byte string
+    :returns: The decoded byte string.
+
+    """
+    missing_padding = len(data) % 4
+    if missing_padding != 0:
+        data += b'='* (4 - missing_padding)
+    return base64.decodestring(data)
+
 
 for infile in infiles:
     print('Reading ' + infile)
@@ -40,12 +57,22 @@ for infile in infiles:
         for item in reader:
             item['image_id'] = int(item['image_id'])
             item['num_boxes'] = int(item['num_boxes'])
+    
+            if len(item['features']) % 4 != 0 or len(item['boxes']) % 4 != 0:
+                continue
+                # print(item['image_id'])
+                #pdb.set_trace()
+            
             for field in ['boxes', 'features']:
-                item[field] = np.frombuffer(base64.decodestring(item[field]), 
+                item[field] = np.frombuffer( decode_base64(item[field]), 
                         dtype=np.float32).reshape((item['num_boxes'],-1))
             np.savez_compressed(os.path.join(args.output_dir+'_att', str(item['image_id'])), feat=item['features'])
             np.save(os.path.join(args.output_dir+'_fc', str(item['image_id'])), item['features'].mean(0))
             np.save(os.path.join(args.output_dir+'_box', str(item['image_id'])), item['boxes'])
+
+print('Done.')
+
+
 
 
 
