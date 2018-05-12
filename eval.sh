@@ -1,6 +1,6 @@
 python eval.py \
-    --model save/topdown_ml/model.pth \
-    --infos_path save/topdown_ml/infos_.pkl \
+    --model save/topdown_ml/model-best.pth \
+    --infos_path save/topdown_ml/infos_-best.pkl \
     --dump_images 0 \
     --language_eval 1 \
     --split val \
@@ -8,4 +8,6 @@ python eval.py \
     --input_att_dir data/parabu_att \
     --input_json data/paratalk.json \
     --input_label_h5 data/paratalk_label.h5 \
-    --num_images 5000
+    --num_images 5000 \
+    --beam_size 1 \
+    --block_trigrams 1

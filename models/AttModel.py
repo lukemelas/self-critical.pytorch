@@ -25,6 +25,8 @@ from torch.nn.utils.rnn import PackedSequence, pack_padded_sequence, pad_packed_
 
 from .CaptionModel import CaptionModel
 
+import pdb
+
 def sort_pack_padded_sequence(input, lengths):
     sorted_lengths, indices = torch.sort(lengths, descending=True)
     tmp = pack_padded_sequence(input[indices], sorted_lengths, batch_first=True)
@@ -192,6 +194,7 @@ class AttModel(CaptionModel):
         beam_size = opt.get('beam_size', 1)
         temperature = opt.get('temperature', 1.0)
         decoding_constraint = opt.get('decoding_constraint', 0)
+        block_trigrams = opt.get('block_trigrams', 0)
         if beam_size > 1:
             return self._sample_beam(fc_feats, att_feats, att_masks, opt)
 
@@ -199,6 +202,10 @@ class AttModel(CaptionModel):
         state = self.init_hidden(batch_size)
 
         fc_feats, att_feats, p_att_feats = self._prepare_feature(fc_feats, att_feats, att_masks)
+
+        # BEG MODIFIED
+        trigrams = [] # will be a list of batch_size dictionaries
+        # END MODIFIED
 
         # seq = []
         # seqLogprobs = []
@@ -240,6 +247,39 @@ class AttModel(CaptionModel):
                 tmp = output.new_zeros(output.size(0), self.vocab_size + 1)
                 tmp.scatter_(1, seq[:,t-1].data.unsqueeze(1), float('-inf'))
                 logprobs = logprobs + tmp
+
+
+            # BEG MODIFIED ----------------------------------------------------
+
+            # Mess with trigrams
+            if block_trigrams and t >= 3: # currently broken
+                pdb.set_trace()
+                # Store trigram generated at last step
+                prev_two_batch = torch.stack(seq[-3:-1], dim=1)
+                for i in range(batch_size):
+                    prev_two = (prev_two_batch[i][0], prev_two_batch[i][1])
+                    current  = seq[-1][i]
+                    if t == 3: # initialize
+                        trigrams.append({prev_two: [current]}) # {LongTensor: list containing 1 int}
+                    elif t > 3:
+                        if prev_two in trigrams[i]: # add to list
+                            trigrams[i][prev_two].append(current)
+                        else: # create list
+                            trigrams[i][prev_two] = [current]
+                # Block used trigrams at next step
+                prev_two_batch = torch.stack(seq[-2:], dim=1)
+                mask = torch.zeros(logprobs.size()) # batch_size x vocab_size
+                for i in range(batch_size):
+                    prev_two = (prev_two_batch[i][0], prev_two_batch[i][1])
+                    if prev_two in trigrams[i]:
+                        for j in trigrams[i][prev_two]:
+                            mask[i,j] = 1
+                # Apply mask to log probs
+                mask = Variable(mask, requires_grad=False).cuda()
+                logprobs = logprobs - (mask * 1e10)
+                
+            # END MODIFIED ----------------------------------------------------
+
 
         return seq, seqLogprobs
         # return torch.cat([_.unsqueeze(1) for _ in seq], 1), torch.cat([_.unsqueeze(1) for _ in seqLogprobs], 1)

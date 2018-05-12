@@ -5,13 +5,15 @@ python train.py \
     --input_att_dir data/parabu_att \
     --input_label_h5 data/paratalk_label.h5 \
     --batch_size 10 \
-    --learning_rate 5e-4 \
+    --learning_rate 5e-5 \
     --learning_rate_decay_start 0 \
     --scheduled_sampling_start 0 \
-    --checkpoint_path save/topdown_ml \
-    --save_checkpoint_every 2500 \
+    --checkpoint_path save/topdown_sc_continued_e50 \
+    --save_checkpoint_every 4000 \
     --language_eval 1 \
     --val_images_use 5000 \
-    --max_epochs 30 \
-    --start_from save/topdown_ml \
+    --max_epochs 200 \
+    --start_from save/topdown_sc \
+    --self_critical_after 0 \
+    --cached_tokens para-train-idxs \
     --print_freq 100

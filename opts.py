@@ -2,6 +2,7 @@ import argparse
 
 def parse_opt():
     parser = argparse.ArgumentParser()
+
     # Data input settings
     parser.add_argument('--input_json', type=str, default='data/coco.json',
                     help='path to the json file containing additional info and vocab')
@@ -47,7 +48,7 @@ def parse_opt():
     parser.add_argument('--use_bn', type=int, default=0,
                     help='If 1, then do batch_normalization first in att_embed, if 2 then do bn both in the beginning and the end of att_embed')
 
-    # feature manipulation
+    # Feature manipulation
     parser.add_argument('--norm_att_feat', type=int, default=0,
                     help='If normalize attention features')
     parser.add_argument('--use_box', type=int, default=0,
@@ -71,7 +72,7 @@ def parse_opt():
     parser.add_argument('--beam_size', type=int, default=1,
                     help='used when sample_max = 1, indicates number of beams in beam search. Usually 2 or 3 works well. More is not better. Set this to 1 for faster runtime but a bit worse performance.')
 
-    #Optimization: for the Language Model
+    # Optimization: for the Language Model
     parser.add_argument('--optim', type=str, default='adam',
                     help='what update to use? rmsprop|sgd|sgdmom|adagrad|adam')
     parser.add_argument('--learning_rate', type=float, default=4e-4,
@@ -114,6 +115,8 @@ def parse_opt():
                     help='How often do we snapshot losses, for inclusion in the progress dump? (0 = disable)')       
     parser.add_argument('--load_best_score', type=int, default=1,
                     help='Do we load previous best score when resuming training.')       
+    parser.add_argument('--block_trigrams', type=int, default=0, # MODIFIED -- ADDED
+                    help='Block trigrams in greedy search.')       
 
     # misc
     parser.add_argument('--id', type=str, default='',

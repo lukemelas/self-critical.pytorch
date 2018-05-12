@@ -221,7 +221,7 @@ def train(opt):
                     cPickle.dump(histories, f)
 
                 if best_flag:
-                    checkpoint_path = os.path.join(opt.checkpoint_path, 'model-best.pth')
+                    checkpoint_path = os.path.join(opt.checkpoint_path, 'model-best-i{}-score{}.pth'.format(iteration, best_val_score))
                     torch.save(model.state_dict(), checkpoint_path)
                     print("model saved to {}".format(checkpoint_path))
                     with open(os.path.join(opt.checkpoint_path, 'infos_'+opt.id+'-best.pkl'), 'wb') as f:

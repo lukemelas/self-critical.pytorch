@@ -56,6 +56,9 @@ parser.add_argument('--temperature', type=float, default=1.0,
                 help='temperature when sampling from distributions (i.e. when sample_max = 0). Lower = "safer" predictions.')
 parser.add_argument('--decoding_constraint', type=int, default=0,
                 help='If 1, not allowing same word in a row')
+parser.add_argument('--block_trigrams', type=int, default=0, # MODIFIED -- ADDED
+                help='Block repeat trigrams in greedy and beam search.')       
+
 # For evaluation on a folder of images:
 parser.add_argument('--image_folder', type=str, default='', 
                 help='If this is nonempty then will predict on the images in this folder path')

@@ -60,7 +60,7 @@ def get_self_critical_reward(model, fc_feats, att_feats, att_masks, data, gen_re
     gts = {i: gts[i % batch_size // seq_per_img] for i in range(2 * batch_size)}
     if opt.cider_reward_weight > 0:
         _, cider_scores = CiderD_scorer.compute_score(gts, res_)
-        print('Cider scores:', _)
+        #print('Cider scores:', _)
     else:
         cider_scores = 0
     if opt.bleu_reward_weight > 0:
