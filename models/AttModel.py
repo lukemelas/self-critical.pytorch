@@ -252,13 +252,13 @@ class AttModel(CaptionModel):
             # BEG MODIFIED ----------------------------------------------------
 
             # Mess with trigrams
-            if block_trigrams and t >= 3: # currently broken
-                pdb.set_trace()
+            if block_trigrams and t >= 3 and sample_max:# currently broken
+                #pdb.set_trace()
                 # Store trigram generated at last step
-                prev_two_batch = torch.stack(seq[-3:-1], dim=1)
-                for i in range(batch_size):
-                    prev_two = (prev_two_batch[i][0], prev_two_batch[i][1])
-                    current  = seq[-1][i]
+                prev_two_batch = seq[:,t-3:t-1]
+                for i in range(batch_size): # = seq.size(0)
+                    prev_two = (prev_two_batch[i][0].item(), prev_two_batch[i][1].item())
+                    current  = seq[i][t-1]
                     if t == 3: # initialize
                         trigrams.append({prev_two: [current]}) # {LongTensor: list containing 1 int}
                     elif t > 3:
@@ -267,15 +267,14 @@ class AttModel(CaptionModel):
                         else: # create list
                             trigrams[i][prev_two] = [current]
                 # Block used trigrams at next step
-                prev_two_batch = torch.stack(seq[-2:], dim=1)
-                mask = torch.zeros(logprobs.size()) # batch_size x vocab_size
+                prev_two_batch = seq[:,t-2:t]
+                mask = torch.zeros(logprobs.size(), requires_grad=False).cuda() # batch_size x vocab_size
                 for i in range(batch_size):
-                    prev_two = (prev_two_batch[i][0], prev_two_batch[i][1])
+                    prev_two = (prev_two_batch[i][0].item(), prev_two_batch[i][1].item())
                     if prev_two in trigrams[i]:
                         for j in trigrams[i][prev_two]:
                             mask[i,j] = 1
                 # Apply mask to log probs
-                mask = Variable(mask, requires_grad=False).cuda()
                 logprobs = logprobs - (mask * 1e10)
                 
             # END MODIFIED ----------------------------------------------------
