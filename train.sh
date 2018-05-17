@@ -8,13 +8,15 @@ python train.py \
     --learning_rate 5e-5 \
     --learning_rate_decay_start 0 \
     --scheduled_sampling_start 0 \
-    --checkpoint_path save/topdown_sc_trigram_blocking_baseline \
+    --start_from save/topdown_sc \
+    --checkpoint_path save/topdown_sc_trigram_cider0.75_bleu0.25 \
     --save_checkpoint_every 4000 \
     --language_eval 1 \
     --val_images_use 5000 \
     --max_epochs 200 \
-    --start_from save/topdown_ml \
     --self_critical_after 0 \
     --cached_tokens para-train-idxs \
+    --cider_reward_weight 0.75 \
+    --bleu_reward_weight 0.25 \
     --block_trigrams 1 \
     --print_freq 100

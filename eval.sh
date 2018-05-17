@@ -1,6 +1,6 @@
 python eval.py \
-    --model save/topdown_ml/model-best.pth \
-    --infos_path save/topdown_ml/infos_-best.pkl \
+    --model save/topdown_sc_trigram_cider0.75_bleu0.25/model-best-i88000-score0.319468405995.pth \
+    --infos_path save/topdown_sc_trigram_cider0.75_bleu0.25/infos_-best.pkl \
     --dump_images 0 \
     --language_eval 1 \
     --split val \

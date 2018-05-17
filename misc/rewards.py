@@ -66,7 +66,7 @@ def get_self_critical_reward(model, fc_feats, att_feats, att_masks, data, gen_re
     if opt.bleu_reward_weight > 0:
         _, bleu_scores = Bleu_scorer.compute_score(gts, res__)
         bleu_scores = np.array(bleu_scores[3])
-        print('Bleu scores:', _[3])
+        #print('Bleu scores:', _[3])
     else:
         bleu_scores = 0
     scores = opt.cider_reward_weight * cider_scores + opt.bleu_reward_weight * bleu_scores
