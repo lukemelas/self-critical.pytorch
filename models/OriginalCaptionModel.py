@@ -45,42 +45,8 @@ class CaptionModel(nn.Module):
                         logprobsf[sub_beam][prev_decisions[prev_labels]] = logprobsf[sub_beam][prev_decisions[prev_labels]] - diversity_lambda
             return unaug_logprobsf
 
-        # function to block previous trigrams
-        def _block_trigrams(trigram_list, beam_seq, logprobsf, t, divm):
-
-
-            ###############
-            #beam_seq[:t][-2:] # last 2 words generated
-            #beam_seq[:t][-2:][:,b] # last 2 words generated in beam b
-            #beam_seq[:t][:-2][:,4].numpy().tolist() # previous words
-            #beam_seq[:t][-2:][:,4].numpy().tolist() # current bigram
-            ###############
-
-            beam = beam_seq[:t].numpy() # words generated so far in beam
-            beam_size = beam.shape[1]
-            blocked_words = [[] for _ in range(beam_size)] # list of beam_size lists
-                                                           # each list contains the blocked words for this step of the beam
-            # find which words to block
-            for b in range(beam_size): 
-                current_bigram = beam[-2:][:,b].tolist()
-                previous_words = beam[:-2][:,b].tolist()
-                for i in range(t - 3): # check if any previous bigrams match current bigram
-                    if previous_words[i:i+2] == current_bigram:
-                        print(previous_words.shape, i+2)
-                        blocked_words[b].append(previous_words[i+2]) # if they do, add the following word to the blocked list
-
-            
-            # block words
-            for b in range(beam_size):
-                for w in blocked_words[b]:
-                    logprobsf[b][w] = -1e9 # block
-
-            # note: it would be easy and slightly faster to just block directly (without blocked_words)
-            # but I am doing it this way to possibly interpret the results later
-
-            return None
-
         # does one step of classical beam search
+
         def beam_step(logprobsf, unaug_logprobsf, beam_size, t, beam_seq, beam_seq_logprobs, beam_logprobs_sum, state):
             #INPUTS:
             #logprobsf: probabilities augmented after diversity
@@ -137,7 +103,6 @@ class CaptionModel(nn.Module):
         beam_size = opt.get('beam_size', 10)
         group_size = opt.get('group_size', 1)
         diversity_lambda = opt.get('diversity_lambda', 0.5)
-        block_trigrams = opt.get('block_trigrams', 0)
         decoding_constraint = opt.get('decoding_constraint', 0)
         max_ppl = opt.get('max_ppl', 0)
         bdash = beam_size // group_size # beam per group
@@ -151,11 +116,6 @@ class CaptionModel(nn.Module):
         done_beams_table = [[] for _ in range(group_size)]
         state_table = [list(torch.unbind(_)) for _ in torch.stack(init_state).chunk(group_size, 2)]
         logprobs_table = list(init_logprobs.chunk(group_size, 0))
-
-        # store previous trigrams
-        trigrams = [[] for _ in range(group_size)] # will be a list of group_size lists. 
-                                                   # each list is a list of beam_size dictionaries. 
-                                                   # the keys of each dictionary are bigrams and the values are unigrams
         # END INIT
 
         # Chunk elements in the args
@@ -175,12 +135,9 @@ class CaptionModel(nn.Module):
                     logprobsf[:,logprobsf.size(1)-1] = logprobsf[:, logprobsf.size(1)-1] - 1000  
                     # diversity is added here
                     # the function directly modifies the logprobsf values and hence, we need to return
-                    # the unaugmented ones for sorting the candidates in the end. # for historical reasons :-)
+                    # the unaugmented ones for sorting the candidates in the end. # for historical
+                    # reasons :-)
                     unaug_logprobsf = add_diversity(beam_seq_table,logprobsf,t,divm,diversity_lambda,bdash)
-
-                    # if blocking trigrams, directly modify logprobsf
-                    if t >= 4 and block_trigrams:
-                        _block_trigrams(trigrams[divm], beam_seq_table[divm], logprobsf, t, divm)
 
                     # infer new beams
                     beam_seq_table[divm],\
@@ -212,6 +169,7 @@ class CaptionModel(nn.Module):
                             beam_logprobs_sum_table[divm][vix] = -1000
 
                     # move the current group one step forward in time
+                    
                     it = beam_seq_table[divm][t-divm]
                     logprobs_table[divm], state_table[divm] = self.get_logprobs_state(it.cuda(), *(args[divm] + [state_table[divm]]))
 

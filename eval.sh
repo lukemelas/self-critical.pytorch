@@ -1,6 +1,6 @@
 python eval.py \
-    --model save/topdown_sc_trigram_cider0.75_bleu0.25/model-best-i88000-score0.319468405995.pth \
-    --infos_path save/topdown_sc_trigram_cider0.75_bleu0.25/infos_-best.pkl \
+    --model save/topdown_sc_trigram_cider_and_bleu/model-best-i92000-score0.310057315613.pth \
+    --infos_path save/topdown_sc_trigram_cider_and_bleu/infos_-best.pkl \
     --dump_images 0 \
     --language_eval 1 \
     --split val \
@@ -9,5 +9,5 @@ python eval.py \
     --input_json data/paratalk.json \
     --input_label_h5 data/paratalk_label.h5 \
     --num_images 5000 \
-    --beam_size 1 \
+    --beam_size 5 \
     --block_trigrams 1

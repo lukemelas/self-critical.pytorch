@@ -21,7 +21,7 @@ def language_eval(dataset, preds, model_id, split):
     import sys
     sys.path.append("coco-caption")
     #annFile = 'coco-caption/annotations/captions_val2014.json'
-    annFile = 'coco-caption/annotations/captions_val_para.json'
+    annFile = 'coco-caption/annotations/captions_test_para.json' if split == 'test' else 'coco-caption/annotations/captions_val_para.json'
     from pycocotools.coco import COCO
     from pycocoevalcap.eval import COCOEvalCap
 
