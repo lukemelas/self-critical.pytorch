@@ -57,23 +57,23 @@ class CaptionModel(nn.Module):
             ###############
 
             beam = beam_seq[:t].numpy() # words generated so far in beam
-            beam_size = beam.shape[1]
+            max_length, beam_size = beam_seq.shape
             blocked_words = [[] for _ in range(beam_size)] # list of beam_size lists
                                                            # each list contains the blocked words for this step of the beam
             # find which words to block
             for b in range(beam_size): 
-                current_bigram = beam[-2:][:,b].tolist()
-                previous_words = beam[:-2][:,b].tolist()
+                current_bigram = beam[-2:,b].tolist()
+                previous_words = beam[  :,b].tolist()
                 for i in range(t - 3): # check if any previous bigrams match current bigram
                     if previous_words[i:i+2] == current_bigram:
-                        print(previous_words.shape, i+2)
+                        #print('t', t, 'lenp', len(previous_words), 'i+2', i+2)
                         blocked_words[b].append(previous_words[i+2]) # if they do, add the following word to the blocked list
 
             
             # block words
             for b in range(beam_size):
                 for w in blocked_words[b]:
-                    logprobsf[b][w] = -1e9 # block
+                    logprobsf[b][w] = -1e9 # block # torch.sort(logprobsf,1,True)
 
             # note: it would be easy and slightly faster to just block directly (without blocked_words)
             # but I am doing it this way to possibly interpret the results later
@@ -179,7 +179,7 @@ class CaptionModel(nn.Module):
                     unaug_logprobsf = add_diversity(beam_seq_table,logprobsf,t,divm,diversity_lambda,bdash)
 
                     # if blocking trigrams, directly modify logprobsf
-                    if t >= 4 and block_trigrams:
+                    if block_trigrams and (t >= 4 and t < self.seq_length):
                         _block_trigrams(trigrams[divm], beam_seq_table[divm], logprobsf, t, divm)
 
                     # infer new beams
