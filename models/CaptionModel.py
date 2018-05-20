@@ -48,14 +48,6 @@ class CaptionModel(nn.Module):
         # function to block previous trigrams
         def _block_trigrams(trigram_list, beam_seq, logprobsf, t, divm):
 
-
-            ###############
-            #beam_seq[:t][-2:] # last 2 words generated
-            #beam_seq[:t][-2:][:,b] # last 2 words generated in beam b
-            #beam_seq[:t][:-2][:,4].numpy().tolist() # previous words
-            #beam_seq[:t][-2:][:,4].numpy().tolist() # current bigram
-            ###############
-
             beam = beam_seq[:t].numpy() # words generated so far in beam
             max_length, beam_size = beam_seq.shape
             blocked_words = [[] for _ in range(beam_size)] # list of beam_size lists
@@ -67,13 +59,14 @@ class CaptionModel(nn.Module):
                 for i in range(t - 3): # check if any previous bigrams match current bigram
                     if previous_words[i:i+2] == current_bigram:
                         #print('t', t, 'lenp', len(previous_words), 'i+2', i+2)
-                        blocked_words[b].append(previous_words[i+2]) # if they do, add the following word to the blocked list
+                        blocked_words[b].append(previous_words[i+2]) # if so, add subsequent word to the blocked list
 
             
             # block words
             for b in range(beam_size):
                 for w in blocked_words[b]:
-                    logprobsf[b][w] = -1e9 # block # torch.sort(logprobsf,1,True)
+                    #if divm > 0: print('blocked ', b, w) #pdb.set_trace()
+                    logprobsf[b][w] = logprobsf[b][w] - 1e9 #  1e9 # block # torch.sort(logprobsf,1,True)
 
             # note: it would be easy and slightly faster to just block directly (without blocked_words)
             # but I am doing it this way to possibly interpret the results later

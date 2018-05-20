@@ -1,4 +1,4 @@
-# This file contains Att2in2, AdaAtt, AdaAttMO, TopDown model
+#= This file contains Att2in2, AdaAtt, AdaAttMO, TopDown model
 
 # AdaAtt is from Knowing When to Look: Adaptive Attention via A Visual Sentinel for Image Captioning
 # https://arxiv.org/abs/1612.01887
@@ -240,6 +240,7 @@ class AttModel(CaptionModel):
                 seqLogprobs[:,t-1] = sampleLogprobs.view(-1)
 
             logprobs, state = self.get_logprobs_state(it, fc_feats, att_feats, p_att_feats, att_masks, state)
+
             if decoding_constraint and t > 0:
                 tmp = output.new_zeros(output.size(0), self.vocab_size + 1)
                 tmp.scatter_(1, seq[:,t-1].data.unsqueeze(1), float('-inf'))
@@ -249,8 +250,7 @@ class AttModel(CaptionModel):
             # BEG MODIFIED ----------------------------------------------------
 
             # Mess with trigrams
-            if block_trigrams and t >= 3 and sample_max:# currently broken
-                #pdb.set_trace()
+            if block_trigrams and t >= 3 and sample_max:
                 # Store trigram generated at last step
                 prev_two_batch = seq[:,t-3:t-1]
                 for i in range(batch_size): # = seq.size(0)
@@ -270,12 +270,20 @@ class AttModel(CaptionModel):
                     prev_two = (prev_two_batch[i][0].item(), prev_two_batch[i][1].item())
                     if prev_two in trigrams[i]:
                         for j in trigrams[i][prev_two]:
-                            mask[i,j] = 1
+                            mask[i,j] += 1
                 # Apply mask to log probs
-                logprobs = logprobs - (mask * 1e10)
+                #logprobs = logprobs - (mask * 1e9)
+                alpha = 2.0
+                logprobs = logprobs + (mask * -0.693 * alpha) # ln(1/2) * alpha (alpha -> infty works best)
+
+
+                # Length penalty
+                #penalty = 1.00
+                #formula = penalty**t  # (5 + t)**penalty / (5 + 1)**penalty
+                #helper = (torch.ones(logprobs.shape) - (1.0 - formula) * (torch.arange(logprobs.shape[1]).expand(logprobs.shape) <= 1).float()).cuda() 
+                #logprobs = logprobs * helper 
                 
             # END MODIFIED ----------------------------------------------------
-
 
         return seq, seqLogprobs
         # return torch.cat([_.unsqueeze(1) for _ in seq], 1), torch.cat([_.unsqueeze(1) for _ in seqLogprobs], 1)
