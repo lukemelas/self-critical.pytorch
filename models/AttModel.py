@@ -273,7 +273,7 @@ class AttModel(CaptionModel):
                             mask[i,j] += 1
                 # Apply mask to log probs
                 #logprobs = logprobs - (mask * 1e9)
-                alpha = 2.0
+                alpha = 2.0 # = 4
                 logprobs = logprobs + (mask * -0.693 * alpha) # ln(1/2) * alpha (alpha -> infty works best)
 
 

@@ -55,6 +55,7 @@ def language_eval(dataset, preds, model_id, split):
         imgToEval[image_id]['caption'] = caption
     with open(cache_path, 'w') as outfile:
         json.dump({'overall': out, 'imgToEval': imgToEval}, outfile)
+    json.dump({'overall': out, 'imgToEval': imgToEval}, open('eval_results/lastval.json', 'w'))
 
     return out
 

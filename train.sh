@@ -8,8 +8,8 @@ python train.py \
     --learning_rate 5e-5 \
     --learning_rate_decay_start 0 \
     --scheduled_sampling_start 0 \
-    --start_from save/topdown_ml \
-    --checkpoint_path save/topdown_sc_alpha_1.0 \
+    --start_from save/topdown_ml_trained \
+    --checkpoint_path save/topdown_sc_alpha_0.0 \
     --save_checkpoint_every 4000 \
     --language_eval 1 \
     --val_images_use 5000 \
@@ -18,4 +18,4 @@ python train.py \
     --cached_tokens para-train-idxs \
     --cider_reward_weight 1 \
     --block_trigrams 1 \
-    --print_freq 100
+    --print_freq 200
